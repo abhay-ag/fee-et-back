@@ -24,7 +24,7 @@ app.get("/", async (req, res) => {
   await client.connect();
   const db = client.db("student");
   const collection = db.collection("data");
-  const cursor = collection.find({});
+  const cursor = collection.find({}).project({ password: 0 });
   const allValues = await cursor.toArray();
   res.status(200).json({ data: allValues });
 });
@@ -37,7 +37,11 @@ app.post("/student/add", async (req, res) => {
   if (exist) {
     res.status(500).json({ status: "Duplicate Students" });
   } else {
-    const resp = await collection.insertOne(req.body);
+    let hashedPassword = await bcrypt.hash(req.body.password, saltRounds);
+    const resp = await collection.insertOne({
+      ...req.body,
+      password: hashedPassword,
+    });
 
     if (resp.acknowledged) {
       res.status(200).json({ status: "OK" });
@@ -58,7 +62,10 @@ app.post("/login", async (req, res) => {
   const db = client.db("student");
   const collection = db.collection("data");
   const resp = await collection.findOne({ roll_no: req.body.roll_no });
-  if (resp.password && req.body.password === resp.password) {
+  if (
+    resp.password &&
+    (await bcrypt.compare(req.body.password, resp.password))
+  ) {
     res.status(200).json({ status: "OK" });
   } else {
     res.status(500).json({ status: "No id found" });
