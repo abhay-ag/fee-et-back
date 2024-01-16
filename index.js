@@ -50,6 +50,27 @@ app.post("/login", async (req, res) => {
   }
 });
 
+app.post("/student/get", async (req, res) => {
+  const resp = await collection.findOne({ roll_no: req.body.roll_no });
+  res.status(200).json({ data: resp });
+});
+
+app.post("/student/update", async (req, res) => {
+  const resp = await collection.updateOne(
+    {
+      roll_no: req.body.roll_no,
+    },
+    {
+      $set: {
+        roll_no: req.body.roll_no,
+        email_id: req.body.email_id,
+        name: req.body.name,
+      },
+    }
+  );
+  res.status(200).json({ state: "OK" });
+});
+
 app.listen(process.env.PORT, () => {
   console.log("Server listening");
 });
