@@ -3,6 +3,7 @@ import express from "express";
 import bodyParser from "body-parser";
 import bcrypt from "bcrypt";
 const collection = db.collection("data");
+const coursesCollection = db.collection("courses");
 
 var jsonParser = bodyParser.json();
 const saltRounds = 10;
@@ -69,6 +70,22 @@ app.post("/student/update", async (req, res) => {
     }
   );
   res.status(200).json({ state: "OK" });
+});
+
+app.post("/courses/add", async (req, res) => {
+  const resp = await coursesCollection.findOne({ c_id: req.body.c_id });
+  if (resp) {
+    res.status(500).json({ state: "failed" });
+  } else {
+    await coursesCollection.insertOne(req.body);
+    res.status(200).json({ state: "OK" });
+  }
+});
+
+app.get("/courses", async (req, res) => {
+  const resp = coursesCollection.find({}).project({ name: 0 });
+  const response = await resp.toArray();
+  res.status(200).json({ data: response });
 });
 
 app.listen(process.env.PORT, () => {
