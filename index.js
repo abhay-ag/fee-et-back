@@ -131,7 +131,7 @@ app.post("/attendance/get", async (req, res) => {
   const respArr = [];
   const courseCursor = coursesCollection
     .find({ c_id: { $in: req.body.courses } })
-    .project({ _id: 0, name: 0 });
+    .project({ _id: 0 });
 
   for await (const course of courseCursor) {
     const respCur = attendanceCollection.find({
@@ -151,6 +151,7 @@ app.post("/attendance/get", async (req, res) => {
     const resp = await respCur.toArray();
     respArr.push({
       c_id: course.c_id,
+      name: course.name,
       delivered: course.delivered,
       attended: resp.length,
     });
