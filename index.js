@@ -4,6 +4,7 @@ import bodyParser from "body-parser";
 import bcrypt from "bcrypt";
 const collection = db.collection("data");
 const coursesCollection = db.collection("courses");
+const attendanceCollection = db.collection("attendance");
 
 var jsonParser = bodyParser.json();
 const saltRounds = 10;
@@ -82,12 +83,12 @@ app.post("/courses/add", async (req, res) => {
   if (resp) {
     res.status(500).json({ state: "failed" });
   } else {
-    await coursesCollection.insertOne(req.body);
+    await coursesCollection.insertOne({ ...req.body, delivered: 0 });
     res.status(200).json({ state: "OK" });
   }
 });
 
-app.post("/courses", async (req, res) => {
+app.get("/courses", async (req, res) => {
   const resp = coursesCollection.find({});
   const response = await resp.toArray();
   res.status(200).json({ data: response });
@@ -97,6 +98,33 @@ app.post("/courses/get", async (req, res) => {
   const resp = coursesCollection.find({ c_id: { $in: req.body.courses } });
   const response = await resp.toArray();
   res.status(200).json({ data: response });
+});
+
+app.post("/courses/get/by-id", async (req, res) => {
+  const resp = collection.find({
+    courses: { $elemMatch: { $eq: req.body.c_id } },
+  });
+  const response = await resp.toArray();
+  res.status(200).json({ data: response });
+});
+
+app.post("/attendance/save", async (req, res) => {
+  const resp = await coursesCollection.findOne({ c_id: req.body.c_id });
+  await coursesCollection.updateOne(
+    { c_id: req.body.c_id },
+    {
+      $set: {
+        delivered: resp.delivered + 1,
+      },
+    }
+  );
+
+  await attendanceCollection.insertOne({
+    c_id: req.body.c_id,
+    attendance: req.body.attendance,
+  });
+
+  res.status(200).json({ status: "inserted" });
 });
 
 app.listen(process.env.PORT, () => {
