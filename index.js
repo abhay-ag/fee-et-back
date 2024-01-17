@@ -66,6 +66,7 @@ app.post("/student/update", async (req, res) => {
         roll_no: req.body.roll_no,
         email_id: req.body.email_id,
         name: req.body.name,
+        courses: req.body.courses,
       },
     }
   );
@@ -83,7 +84,7 @@ app.post("/courses/add", async (req, res) => {
 });
 
 app.get("/courses", async (req, res) => {
-  const resp = coursesCollection.find({}).project({ name: 0 });
+  const resp = coursesCollection.find({});
   const response = await resp.toArray();
   res.status(200).json({ data: response });
 });
