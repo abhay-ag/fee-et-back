@@ -127,6 +127,37 @@ app.post("/attendance/save", async (req, res) => {
   res.status(200).json({ status: "inserted" });
 });
 
+app.post("/attendance/get", async (req, res) => {
+  const respArr = [];
+  const courseCursor = coursesCollection
+    .find({ c_id: { $in: req.body.courses } })
+    .project({ _id: 0, name: 0 });
+
+  for await (const course of courseCursor) {
+    const respCur = attendanceCollection.find({
+      $and: [
+        {
+          c_id: course.c_id,
+        },
+        {
+          attendance: {
+            $elemMatch: {
+              $eq: req.body.roll_no,
+            },
+          },
+        },
+      ],
+    });
+    const resp = await respCur.toArray();
+    respArr.push({
+      c_id: course.c_id,
+      delivered: course.delivered,
+      attended: resp.length,
+    });
+  }
+  res.status(200).json({ data: respArr });
+});
+
 app.listen(process.env.PORT, () => {
   console.log("Server listening");
 });
