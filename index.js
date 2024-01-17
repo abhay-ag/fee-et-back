@@ -53,7 +53,11 @@ app.post("/login", async (req, res) => {
 
 app.post("/student/get", async (req, res) => {
   const resp = await collection.findOne({ roll_no: req.body.roll_no });
-  res.status(200).json({ data: resp });
+  if (resp) {
+    res.status(200).json({ data: resp });
+  } else {
+    res.status(404).json({ state: "Not Found" });
+  }
 });
 
 app.post("/student/update", async (req, res) => {
