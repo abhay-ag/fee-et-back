@@ -87,8 +87,14 @@ app.post("/courses/add", async (req, res) => {
   }
 });
 
-app.get("/courses", async (req, res) => {
+app.post("/courses", async (req, res) => {
   const resp = coursesCollection.find({});
+  const response = await resp.toArray();
+  res.status(200).json({ data: response });
+});
+
+app.post("/courses/get", async (req, res) => {
+  const resp = coursesCollection.find({ c_id: { $in: req.body.courses } });
   const response = await resp.toArray();
   res.status(200).json({ data: response });
 });
