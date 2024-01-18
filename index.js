@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 const collection = db.collection("data");
 const coursesCollection = db.collection("courses");
 const attendanceCollection = db.collection("attendance");
+const notifiactions = db.collection("notifications");
 
 var jsonParser = bodyParser.json();
 const saltRounds = 10;
@@ -157,6 +158,14 @@ app.post("/attendance/get", async (req, res) => {
     });
   }
   res.status(200).json({ data: respArr });
+});
+
+app.post("/notification", async (req, res) => {
+  if (req.body.title) await notifiactions.insertOne(req.body);
+  const resp = notifiactions.find({});
+  const response = await resp.toArray();
+
+  res.status(200).json({ data: response });
 });
 
 app.listen(process.env.PORT, () => {
